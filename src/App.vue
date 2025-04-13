@@ -1,6 +1,7 @@
+<!-- src/App.vue -->
 <script setup lang="ts">
-import { RouterLink, RouterView } from 'vue-router'
-import HelloWorld from './components/HelloWorld.vue'
+import { RouterLink, RouterView } from 'vue-router';
+import HelloWorld from './components/HelloWorld.vue';
 </script>
 
 <template>
@@ -11,8 +12,11 @@ import HelloWorld from './components/HelloWorld.vue'
       <HelloWorld msg="You did it!" />
 
       <nav>
+        <!-- 原有的链接 -->
         <RouterLink to="/">Home</RouterLink>
         <RouterLink to="/about">About</RouterLink>
+        <!-- 添加设备管理页面的链接 -->
+        <RouterLink to="/devices">设备管理</RouterLink>
       </nav>
     </div>
   </header>
@@ -21,6 +25,7 @@ import HelloWorld from './components/HelloWorld.vue'
 </template>
 
 <style scoped>
+/* 保留原有的样式 */
 header {
   line-height: 1.5;
   max-height: 100vh;
