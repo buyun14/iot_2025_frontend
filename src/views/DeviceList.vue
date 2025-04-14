@@ -43,7 +43,7 @@
     </div>
   </template>
   
-  <script setup>
+  <script setup lang="js">
   import { ref, onMounted } from 'vue';
   import { getDevices, deleteDevice as apiDeleteDevice } from '@/services/apiService';
   import UpdateDeviceModal from '@/components/UpdateDeviceModal.vue';
@@ -99,4 +99,4 @@
   onMounted(() => {
     fetchDevices();
   });
-  </script>
+</script>

@@ -6,7 +6,7 @@ import HelloWorld from './components/HelloWorld.vue';
 
 <template>
   <header>
-    <img alt="Vue logo" class="logo" src="@/assets/logo.svg" width="125" height="125" />
+    <img alt="Vue logo" class="logo" src="@/assets/logo.svg" width="75" height="75" />
 
     <div class="wrapper">
       <HelloWorld msg="You did it!" />
@@ -17,6 +17,8 @@ import HelloWorld from './components/HelloWorld.vue';
         <RouterLink to="/about">About</RouterLink>
         <!-- 添加设备管理页面的链接 -->
         <RouterLink to="/devices">设备管理</RouterLink>
+        <!-- 添加3D可视化页面的链接 -->
+        <RouterLink to="/3d-scene">3D可视化</RouterLink>
       </nav>
     </div>
   </header>
@@ -32,7 +34,7 @@ header {
 }
 
 .logo {
-  display: block;
+  display: block; /* 将图片设置为块级元素，并居中显示*/
   margin: 0 auto 2rem;
 }
 

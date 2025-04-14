@@ -12,12 +12,14 @@
   import Chart from 'chart.js/auto'; // 引入 Chart.js
   import 'chartjs-adapter-date-fns'; // 引入日期适配器
   import { getLogs } from '@/services/apiService';
+  import { onBeforeUnmount } from 'vue'; // 引入生命周期钩子
   
   const props = defineProps(['device']);
   const emit = defineEmits(['close']);
   
-  const chartData = ref([]);
-  const chartCanvas = ref(null);
+  const chartData = ref([]); // 假设日志数据包含时间戳和阈值下限
+  const chartCanvas = ref(null); // 获取 canvas 元素
+  const chartInstance = ref(null); // 保存图表实例
   
   // 获取日志数据
   const fetchLogs = async () => {
@@ -34,8 +36,11 @@
   
   // 渲染折线图
   const renderChart = () => {
+    if (chartInstance.value) {
+      chartInstance.value.destroy(); // 销毁旧图表实例
+    }
     if (chartCanvas.value && chartData.value.length > 0) {
-      new Chart(chartCanvas.value, {
+      chartInstance.value = new Chart(chartCanvas.value, {
         type: 'line',
         data: {
           datasets: [{
@@ -71,6 +76,11 @@
   watch(() => props.device, () => {
     fetchLogs().then(() => renderChart());
   });
+
+  onBeforeUnmount(() => {
+  if (chartInstance.value) {
+    chartInstance.value.destroy();
+  }});// 销毁图表实例
   
   const close = () => emit('close');
   </script>
