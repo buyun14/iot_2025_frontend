@@ -1,204 +1,259 @@
 <template>
-    <div class="modal" :style="{ width: modalWidth + 'px', height: modalHeight + 'px' }" ref="modal">
-      <div class="resize-handle" @mousedown="startResize"></div>
-      <h2>{{ device.device_id }} 传感器数据</h2>
+  <el-dialog
+    v-model="dialogVisible"
+    :title="`传感器数据 - ${device.device_id}`"
+    width="900px"
+    :close-on-click-modal="false"
+    @close="close"
+  >
+    <div class="chart-container">
       <canvas ref="chartCanvas"></canvas>
-      <button @click="resetZoom">重置缩放</button>
-      <button @click="close">关闭</button>
-      <div v-if="error" class="error">{{ error }}</div>
-      <div v-if="chartData.length === 0 && !error">暂无传感器数据</div>
     </div>
-  </template>
-  
-  <script setup>
-  import { ref, onMounted, onBeforeUnmount, watch } from 'vue';
-  import Chart from 'chart.js/auto';
-  import zoomPlugin from 'chartjs-plugin-zoom';
-  import { getSensorHistory } from '@/services/apiService';
-  
-  // 注册缩放插件
-  Chart.register(zoomPlugin);
-  
-  const props = defineProps(['device']);
-  const emit = defineEmits(['close']);
-  const chartCanvas = ref(null);
-  const chartData = ref([]);
-  const error = ref(null);
-  let chartInstance = null;
-  
-  // 弹窗初始宽高
-  const modalWidth = ref(600);
-  const modalHeight = ref(400);
-  
-  // 拖拽调整弹窗大小相关变量
-  const isResizing = ref(false);
-  const startX = ref(0);
-  const startY = ref(0);
-  
-  // 获取传感器历史数据
-  const fetchSensorData = async () => {
-    try {
-      const response = await getSensorHistory(props.device.device_id);
-      chartData.value = response.data.map(item => ({
-        timestamp: new Date(item.timestamp).getTime(),
-        value: item.value,
-      }));
-      error.value = null; // 清除错误状态
-    } catch (err) {
-      console.error('获取传感器数据失败', err);
-      error.value = '无法加载传感器数据，请稍后再试。';
-    }
+    <div class="chart-controls">
+      <el-button-group>
+        <el-button @click="resetZoom">
+          <el-icon><Refresh /></el-icon>
+          重置缩放
+        </el-button>
+        <el-button @click="exportData">
+          <el-icon><Download /></el-icon>
+          导出数据
+        </el-button>
+      </el-button-group>
+      <el-select v-model="timeRange" class="ml-2" @change="handleTimeRangeChange">
+        <el-option label="最近1小时" value="1h" />
+        <el-option label="最近6小时" value="6h" />
+        <el-option label="最近24小时" value="24h" />
+        <el-option label="最近7天" value="7d" />
+      </el-select>
+    </div>
+    <el-table
+      v-if="tableData.length > 0"
+      :data="tableData"
+      style="width: 100%"
+      height="300px"
+      border
+    >
+      <el-table-column prop="timestamp" label="时间" width="180">
+        <template #default="{ row }">
+          {{ formatDate(row.timestamp) }}
+        </template>
+      </el-table-column>
+      <el-table-column prop="value" label="传感器数值" width="120" />
+      <el-table-column prop="status" label="状态" width="120">
+        <template #default="{ row }">
+          <el-tag :type="getStatusType(row.status)">
+            {{ row.status === 'on' ? '在线' : '离线' }}
+          </el-tag>
+        </template>
+      </el-table-column>
+    </el-table>
+    <div v-else class="empty-data">
+      <el-empty description="暂无传感器数据" />
+    </div>
+    <template #footer>
+      <span class="dialog-footer">
+        <el-button @click="close">关闭</el-button>
+      </span>
+    </template>
+  </el-dialog>
+</template>
+
+<script setup lang="ts">
+import { ref, onMounted, watch, onBeforeUnmount } from 'vue';
+import Chart from 'chart.js/auto';
+import 'chartjs-adapter-date-fns';
+import { getSensorHistory } from '@/services/apiService';
+import { Refresh, Download } from '@element-plus/icons-vue';
+import { ElMessage } from 'element-plus';
+
+interface SensorData {
+  timestamp: number;
+  value: number;
+  status: string;
+}
+
+const props = defineProps<{
+  device: {
+    device_id: string;
   };
-  
-  // 渲染图表
-  const renderChart = () => {
-    if (chartInstance) {
-      chartInstance.destroy(); // 销毁旧实例
-    }
-  
-    if (chartCanvas.value && chartData.value.length > 0) {
-      chartInstance = new Chart(chartCanvas.value, {
-        type: 'line',
-        data: {
-          datasets: [{
-            label: '传感器数值',
-            data: chartData.value,
-            borderColor: 'rgba(54, 162, 235, 1)',
-            backgroundColor: 'rgba(54, 162, 235, 0.2)',
-            fill: true,
-            parsing: {
-              xAxisKey: 'timestamp',
-              yAxisKey: 'value',
-            },
-          }],
-        },
-        options: {
-          responsive: true,
-          plugins: {
-            tooltip: {
-              mode: 'index',
-              intersect: false,
-            },
+}>();
+
+const emit = defineEmits<{
+  (e: 'close'): void;
+}>();
+
+const dialogVisible = ref(true);
+const chartCanvas = ref<HTMLCanvasElement | null>(null);
+const chartData = ref<SensorData[]>([]);
+const tableData = ref<SensorData[]>([]);
+const timeRange = ref('1h');
+let chartInstance: Chart | null = null;
+
+const fetchSensorData = async () => {
+  try {
+    const response = await getSensorHistory(props.device.device_id, { timeRange: timeRange.value });
+    const data = response.data.map(item => ({
+      timestamp: new Date(item.timestamp).getTime(),
+      value: item.value,
+      status: item.status
+    }));
+    chartData.value = data;
+    tableData.value = data;
+    renderChart();
+  } catch (error) {
+    console.error('获取传感器数据失败', error);
+    ElMessage.error('获取传感器数据失败');
+  }
+};
+
+const getStatusType = (status: string) => {
+  return status === 'on' ? 'success' : 'danger';
+};
+
+const renderChart = () => {
+  if (chartInstance) {
+    chartInstance.destroy();
+  }
+
+  if (chartCanvas.value && chartData.value.length > 0) {
+    chartInstance = new Chart(chartCanvas.value, {
+      type: 'line',
+      data: {
+        datasets: [{
+          label: '传感器数值',
+          data: chartData.value,
+          borderColor: 'rgba(54, 162, 235, 1)',
+          backgroundColor: 'rgba(54, 162, 235, 0.2)',
+          fill: true,
+          parsing: {
+            xAxisKey: 'timestamp',
+            yAxisKey: 'value',
+          },
+        }],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          tooltip: {
+            mode: 'index',
+            intersect: false,
+            callbacks: {
+              title: (items) => {
+                return formatDate(items[0].parsed.x);
+              }
+            }
+          },
+          zoom: {
             zoom: {
-              zoom: {
-                wheel: {
-                  enabled: true, // 启用鼠标滚轮缩放
-                },
-                pinch: {
-                  enabled: true, // 启用手势缩放（移动端）
-                },
-                mode: 'x', // 仅允许 X 轴缩放
-              },
-              pan: {
-                enabled: true, // 启用平移
-                mode: 'x', // 仅允许 X 轴平移
-              },
+              wheel: { enabled: true },
+              pinch: { enabled: true },
+              mode: 'x',
             },
-          },
-          scales: {
-            x: {
-              type: 'time',
-              time: { unit: 'minute' },
-              grid: { display: true },
-            },
-            y: {
-              title: { display: true, text: '数值' },
-              grid: { display: true },
+            pan: {
+              enabled: true,
+              mode: 'x',
             },
           },
         },
-      });
-    }
-  };
-  
-  // 监听设备变化
-  watch(() => props.device, () => {
-    fetchSensorData().then(renderChart);
-  });
-  
-  // 生命周期钩子
-  onMounted(() => {
-    fetchSensorData().then(renderChart);
-    window.addEventListener('mousemove', resizeModal);
-    window.addEventListener('mouseup', stopResize);
-  });
-  
-  onBeforeUnmount(() => {
-    if (chartInstance) {
-      chartInstance.destroy(); // 销毁图表实例
-    }
-    window.removeEventListener('mousemove', resizeModal);
-    window.removeEventListener('mouseup', stopResize);
-  });
-  
-  // 关闭模态框
-  const close = () => emit('close');
-  
-  // 重置缩放
-  const resetZoom = () => {
-    if (chartInstance) {
-      chartInstance.resetZoom(); // 重置缩放和平移
-    }
-  };
-  
-  // 开始调整大小
-  const startResize = (event) => {
-    isResizing.value = true;
-    startX.value = event.clientX;
-    startY.value = event.clientY;
-  };
-  
-  // 调整大小
-  const resizeModal = (event) => {
-    if (isResizing.value) {
-      const deltaX = event.clientX - startX.value;
-      const deltaY = event.clientY - startY.value;
-      modalWidth.value += deltaX;
-      modalHeight.value += deltaY;
-      startX.value = event.clientX;
-      startY.value = event.clientY;
-    }
-  };
-  
-  // 停止调整大小
-  const stopResize = () => {
-    isResizing.value = false;
-  };
-  </script>
-  
-  <style scoped>
-  .modal {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background: white;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    overflow: hidden;
-    resize: both; /* 允许用户手动调整大小 */
-    min-width: 400px;
-    min-height: 300px;
+        scales: {
+          x: {
+            type: 'time',
+            time: { unit: 'minute' },
+            grid: { display: true },
+          },
+          y: {
+            title: { display: true, text: '数值' },
+            grid: { display: true },
+          },
+        },
+      },
+    });
   }
-  
-  .resize-handle {
-    position: absolute;
-    bottom: 0;
-    right: 0;
-    width: 10px;
-    height: 10px;
-    background: #ccc;
-    cursor: se-resize;
+};
+
+const formatDate = (timestamp: number) => {
+  return new Date(timestamp).toLocaleString();
+};
+
+const resetZoom = () => {
+  if (chartInstance) {
+    chartInstance.resetZoom();
   }
-  
-  .error {
-    color: red;
-    margin-top: 10px;
+};
+
+const exportData = () => {
+  const csv = [
+    ['时间', '传感器数值', '状态'],
+    ...tableData.value.map(row => [
+      formatDate(row.timestamp),
+      row.value,
+      row.status === 'on' ? '在线' : '离线'
+    ])
+  ].map(row => row.join(',')).join('\n');
+
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = `${props.device.device_id}_sensor_${new Date().toISOString()}.csv`;
+  link.click();
+};
+
+const handleTimeRangeChange = () => {
+  fetchSensorData();
+};
+
+const close = () => {
+  emit('close');
+};
+
+watch(() => props.device, () => {
+  fetchSensorData();
+});
+
+onMounted(() => {
+  fetchSensorData();
+});
+
+onBeforeUnmount(() => {
+  if (chartInstance) {
+    chartInstance.destroy();
   }
-  
-  button {
-    margin-top: 10px;
-    margin-right: 10px;
-  }
-  </style>
+});
+</script>
+
+<style scoped>
+.chart-container {
+  height: 300px;
+  margin-bottom: 20px;
+}
+
+.chart-controls {
+  margin-bottom: 20px;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 10px;
+}
+
+.empty-data {
+  height: 300px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dialog-footer {
+  display: flex;
+  justify-content: flex-end;
+}
+
+:deep(.el-button-group) {
+  margin-right: 10px;
+}
+
+.ml-2 {
+  margin-left: 10px;
+}
+</style>

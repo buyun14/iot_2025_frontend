@@ -114,7 +114,7 @@ const toggleSidebar = () => {
 }
 
 .sidebar {
-  width: 220px;
+  width: 200px;
   min-width: 64px;
   height: 100vh;
   background-color: #304156;
@@ -202,7 +202,7 @@ const toggleSidebar = () => {
   flex-direction: column;
   overflow: hidden;
   min-width: 0;
-  margin-left: 220px;
+  margin-left: 200px;
   transition: margin-left 0.3s;
 }
 
