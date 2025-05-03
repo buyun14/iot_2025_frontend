@@ -5,18 +5,38 @@ import ToolingIcon from './icons/IconTooling.vue'
 import EcosystemIcon from './icons/IconEcosystem.vue'
 import CommunityIcon from './icons/IconCommunity.vue'
 import SupportIcon from './icons/IconSupport.vue'
+import { ref } from 'vue'
+import { useRoute } from 'vue-router'
+
+const route = useRoute()
+const activeIndex = ref(route.path)
 
 const openReadmeInEditor = () => fetch('/__open-in-editor?file=README.md')
 </script>
 
 <template>
+  <div class="welcome">
+    <el-menu
+      :default-active="activeIndex"
+      class="el-menu-demo"
+      mode="horizontal"
+      router
+    >
+      <el-menu-item index="/">首页</el-menu-item>
+      <el-menu-item index="/devices">设备管理</el-menu-item>
+      <el-menu-item index="/video">视频管理</el-menu-item>
+      <el-menu-item index="/scene">3D可视化</el-menu-item>
+      <el-menu-item index="/about">关于</el-menu-item>
+    </el-menu>
+  </div>
+
   <WelcomeItem>
     <template #icon>
       <DocumentationIcon />
     </template>
     <template #heading>Documentation</template>
 
-    Vue’s
+    Vue's
     <a href="https://vuejs.org/" target="_blank" rel="noopener">official documentation</a>
     provides you with all information you need to get started.
   </WelcomeItem>
@@ -92,3 +112,13 @@ const openReadmeInEditor = () => fetch('/__open-in-editor?file=README.md')
     <a href="https://vuejs.org/sponsor/" target="_blank" rel="noopener">becoming a sponsor</a>.
   </WelcomeItem>
 </template>
+
+<style scoped>
+.welcome {
+  margin-bottom: 20px;
+}
+
+.el-menu-demo {
+  border-bottom: none;
+}
+</style>
