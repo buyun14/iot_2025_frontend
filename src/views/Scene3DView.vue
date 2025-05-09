@@ -5,8 +5,8 @@ import TresPerspectiveCamera from '@tresjs/core'
 import TresDirectionalLight from '@tresjs/core'
 import TresAmbientLight from '@tresjs/core'
 import { OrbitControls } from '@tresjs/cientos'
-import { BasicShadowMap, SRGBColorSpace, NoToneMapping } from 'three'
-import { Home_t, Vector3D } from '@/Model'
+import { BasicShadowMap, SRGBColorSpace, NoToneMapping, Vector3 } from 'three'
+import { Home_t } from '@/utils/Model'
 import Home from '@/components/models/Home.vue'
 
 const gl = {
@@ -18,10 +18,10 @@ const gl = {
   toneMapping: NoToneMapping,
 }
 
-const home = ref<Home_t>()
+const home = ref<Home_t>({ id: '', name: '', floors: [] })
 const isLoaded = ref(false)
 
-const cameraPosition = ref([0, 10, 10])
+const cameraPosition = ref<Vector3>(new Vector3(0, 10, 10))
 
 onMounted(async () => {
   const res = await fetch('/HomePlan.json')
@@ -31,35 +31,34 @@ onMounted(async () => {
 })
 
 const handleOrbitChange = (e: any) => {
-  cameraPosition.value = [e.object.position.x, e.object.position.y, e.object.position.z]
+  cameraPosition.value = e.object.position
 }
 
 const handleOrbitStart = (e: any) => {
-  cameraPosition.value = [e.object.position.x, e.object.position.y, e.object.position.z]
+  cameraPosition.value = e.object.position
 }
 
 const handleOrbitEnd = (e: any) => {
-  cameraPosition.value = [e.object.position.x, e.object.position.y, e.object.position.z]
+  cameraPosition.value = e.object.position
 }
 
 </script>
 
 <template>
   <div class="scene-container">
-    <h1>3D 家居场景与传感器应用</h1>
-    <TresCanvas v-if="isLoaded"  v-bind="gl" window-size>
-    <TresPerspectiveCamera :position="cameraPosition" />
-    <OrbitControls @change="handleOrbitChange" @start="handleOrbitStart" @end="handleOrbitEnd" />
-    <TresAmbientLight :intensity="1" />
-    <TresAxesHelper :args="[1000]" />
-    <TresMesh
-      :position="[10, 20, 10]"
-      :rotation="[0, 0, 0]"
-    >
-      <TresBoxGeometry :args="[1, 1, 1]" />
-      <TresMeshToonMaterial :color="0xffffff" />
-    </TresMesh>
-    <TresDirectionalLight
+    <TresCanvas v-if="isLoaded" v-bind="gl">
+      <TresPerspectiveCamera :position="cameraPosition" />
+      <OrbitControls @change="handleOrbitChange" @start="handleOrbitStart" @end="handleOrbitEnd" />
+      <TresAmbientLight :intensity="1" />
+      <TresAxesHelper :args="[1000]" />
+      <TresMesh
+        :position="[10, 20, 10]"
+        :rotation="[0, 0, 0]"
+      >
+        <TresBoxGeometry :args="[1, 1, 1]" />
+        <TresMeshToonMaterial :color="0xffffff" />
+      </TresMesh>
+      <TresDirectionalLight
         cast-shadow
         :position="[10, 20, 15]"
         :intensity="3"
@@ -71,12 +70,22 @@ const handleOrbitEnd = (e: any) => {
         :shadow-camera-bottom="0"
         :shadow-camera-near="1"
         :shadow-camera-far="100"
-    />
-    <Home :home="home" :cameraPosition="cameraPosition" />
-  </TresCanvas>
+      />
+      <Home :home="home" :cameraPosition="cameraPosition" />
+    </TresCanvas>
   </div>
 </template>
 
 <style scoped>
+.scene-container {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
 
+.scene-container :deep(canvas) {
+  width: 100% !important;
+  height: 100% !important;
+  position: relative !important;
+}
 </style>

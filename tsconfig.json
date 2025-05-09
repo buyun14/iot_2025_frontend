@@ -21,8 +21,16 @@
     "noFallthroughCasesInSwitch": true,
 
     /* Type Declarations */
-    "types": ["element-plus/global"],
-    "typeRoots": ["./node_modules/@types", "./src/types"]
+    "types": ["node"],
+    "typeRoots": ["./node_modules/@types", "./src/types"],
+    
+    /* Path Aliases */
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"]
+    },
+    "allowJs": true,
+    "checkJs": false
   },
   "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.tsx", "src/**/*.vue"],
   "references": [{ "path": "./tsconfig.node.json" }]

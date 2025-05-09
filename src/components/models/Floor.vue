@@ -1,6 +1,8 @@
 <script setup lang="ts">
-import { Floor_t } from '@/Model'
+import { Floor_t } from '@/utils/Model'
 import Room from '@/components/models/Room.vue'
+import { Vector3 } from 'three'
+import type { PropType } from 'vue'
 
 const props = defineProps({
     floor: {
@@ -8,7 +10,7 @@ const props = defineProps({
         required: true
     },
     cameraPosition: {
-        type: Array as PropType<number[]>,
+        type: Object as PropType<Vector3>,
         required: true
     }
 })

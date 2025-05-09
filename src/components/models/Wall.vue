@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { Wall_t } from '@/Model'
-import { computed } from 'vue'
+import { Wall_t } from '@/utils/Model'
+import { computed, PropType } from 'vue'
 
 /**
  * Props
@@ -40,7 +40,7 @@ const length = computed(() => {
 })
 
 // 计算墙的位置（起点和终点的中点）
-const position = computed(() => {
+const position = computed<[number, number, number]>(() => {
     return [
         (props.wall.startPoint.x + props.wall.endPoint.x) / 2,
         props.wall.startPoint.y + props.height / 2,
@@ -49,7 +49,7 @@ const position = computed(() => {
 })
 
 // 计算墙的旋转角度（只在 XZ 平面上旋转）
-const rotation = computed(() => {
+const rotation = computed<[number, number, number]>(() => {
     const dx = props.wall.endPoint.x - props.wall.startPoint.x
     const dz = props.wall.endPoint.z - props.wall.startPoint.z
     return [0, -Math.atan2(dz, dx), 0]
