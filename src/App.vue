@@ -12,6 +12,7 @@ const currentRouteName = computed(() => {
   const routeMap: Record<string, string> = {
     '/': '首页',
     '/devices': '设备管理',
+    '/smart-devices': '智能设备管理',
     '/video': '视频监控',
     '/3d-scene': '3D可视化',
     '/mqtt-topics': 'MQTT主题管理'
@@ -33,6 +34,17 @@ const menuItems = [
     index: '/devices',
     icon: 'Monitor',
     title: '设备管理'
+  },
+  ,
+  {
+    index: '/mqtt-topics',
+    icon: 'Share',
+    title: 'MQTT主题管理'
+  },
+  {
+    index: '/smart-devices',
+    icon: 'Share',
+    title: '智能设备管理'
   },
   {
     index: '/video',

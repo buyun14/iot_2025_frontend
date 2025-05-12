@@ -8,6 +8,8 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
+    DeviceForm: typeof import('./src/components/smart/DeviceForm.vue')['default']
+    DeviceList: typeof import('./src/components/smart/DeviceList.vue')['default']
     DeviceLogsModal: typeof import('./src/components/DeviceLogsModal.vue')['default']
     ElAlert: typeof import('element-plus/es')['ElAlert']
     ElAside: typeof import('element-plus/es')['ElAside']
