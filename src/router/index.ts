@@ -3,6 +3,7 @@ import HomeView from '../views/HomeView.vue';
 import DeviceList from '../views/DeviceList.vue';
 import Scene3DView from '../views/Scene3DView.vue';
 import VideoManagement from '../views/VideoManagement.vue';
+import MqttTopicList from '@/views/MqttTopicList.vue';
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -40,6 +41,15 @@ const router = createRouter({
       component: Scene3DView,
       meta: {
         title: '3D可视化',
+        requiresAuth: true
+      }
+    },
+    {
+      path: '/mqtt-topics',
+      name: 'MqttTopics',
+      component: MqttTopicList,
+      meta: {
+        title: 'MQTT主题管理',
         requiresAuth: true
       }
     },

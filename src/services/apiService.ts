@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // src/services/apiService.js
 import axios from 'axios';
 
@@ -54,7 +55,7 @@ export const getCameraById = (cameraId: string) => apiClient.get(`/video/${camer
 export const createCamera = (cameraData: any) => apiClient.post('/video', cameraData);
 
 // 更新摄像头
-export const updateCamera = (cameraId: string, cameraData: any) => 
+export const updateCamera = (cameraId: string, cameraData: any) =>
   apiClient.put(`/video/${cameraId}`, cameraData);
 
 // 删除摄像头
@@ -65,3 +66,17 @@ export const syncCameraStreams = () => apiClient.post('/video/sync');
 
 // 获取摄像头流URL
 export const getCameraStreamUrls = (cameraId: string) => apiClient.get(`/video/${cameraId}/streams`);
+
+// MQTT主题管理API
+// 获取所有MQTT主题
+export const getMqttTopics = () => apiClient.get('/mqtt-topics');
+
+// 创建MQTT主题
+export const createMqttTopic = (topicData: any) => apiClient.post('/mqtt-topics', topicData);
+
+// 更新MQTT主题
+export const updateMqttTopic = (topicId: string, topicData: any) =>
+  apiClient.put(`/mqtt-topics/${topicId}`, topicData);
+
+// 删除MQTT主题
+export const deleteMqttTopic = (topicId: string) => apiClient.delete(`/mqtt-topics/${topicId}`);

@@ -13,7 +13,8 @@ const currentRouteName = computed(() => {
     '/': '首页',
     '/devices': '设备管理',
     '/video': '视频监控',
-    '/3d-scene': '3D可视化'
+    '/3d-scene': '3D可视化',
+    '/mqtt-topics': 'MQTT主题管理'
   };
   return routeMap[route.path] || '';
 });
