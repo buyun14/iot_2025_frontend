@@ -9,7 +9,8 @@ import {
   View,
   UserFilled,
   ArrowLeft,
-  ArrowRight
+  ArrowRight,
+  Share
 } from '@element-plus/icons-vue';
 
 const route = useRoute();
@@ -21,7 +22,8 @@ const currentRouteName = computed(() => {
     '/': '首页',
     '/devices': '设备管理',
     '/video': '视频监控',
-    '/3d-scene': '3D可视化'
+    '/3d-scene': '3D可视化',
+    '/mqtt-topics': 'MQTT主题管理'
   };
   return routeMap[route.path] || '';
 });
@@ -52,6 +54,10 @@ const toggleSidebar = () => {
         <el-menu-item index="/devices">
           <el-icon><Monitor /></el-icon>
           <template #title>设备管理</template>
+        </el-menu-item>
+        <el-menu-item index="/mqtt-topics">
+          <el-icon><Share /></el-icon>
+          <template #title>MQTT主题管理</template>
         </el-menu-item>
         <el-menu-item index="/video">
           <el-icon><VideoCamera /></el-icon>

@@ -65,3 +65,17 @@ export const syncCameraStreams = () => apiClient.post('/video/sync');
 
 // 获取摄像头流URL
 export const getCameraStreamUrls = (cameraId) => apiClient.get(`/video/${cameraId}/streams`);
+
+// MQTT主题管理API
+// 获取所有MQTT主题
+export const getMqttTopics = () => apiClient.get('/mqtt-topics');
+
+// 创建MQTT主题
+export const createMqttTopic = (topicData) => apiClient.post('/mqtt-topics', topicData);
+
+// 更新MQTT主题
+export const updateMqttTopic = (topicId, topicData) => 
+  apiClient.put(`/mqtt-topics/${topicId}`, topicData);
+
+// 删除MQTT主题
+export const deleteMqttTopic = (topicId) => apiClient.delete(`/mqtt-topics/${topicId}`);
