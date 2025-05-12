@@ -4,6 +4,7 @@ import DeviceList from '../views/DeviceList.vue';
 import Scene3DView from '../views/Scene3DView.vue';
 import VideoManagement from '../views/VideoManagement.vue';
 import MqttTopicList from '@/views/MqttTopicList.vue';
+import SmartDevices from '@/views/SmartDevices.vue';
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -51,6 +52,14 @@ const router = createRouter({
       meta: {
         title: 'MQTT主题管理',
         requiresAuth: true
+      }
+    },
+    {
+      path: '/smart-devices',
+      name: 'SmartDevices',
+      component: SmartDevices,
+      meta: {
+        title: '智能设备管理'
       }
     },
     {

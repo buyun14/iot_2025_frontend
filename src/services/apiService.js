@@ -79,3 +79,24 @@ export const updateMqttTopic = (topicId, topicData) =>
 
 // 删除MQTT主题
 export const deleteMqttTopic = (topicId) => apiClient.delete(`/mqtt-topics/${topicId}`);
+
+// 智能设备相关API
+// 获取所有智能设备
+export const getSmartDevices = () => apiClient.get('/smart/devices');
+
+// 获取单个智能设备
+export const getSmartDevice = (deviceId) => apiClient.get(`/smart/devices/${deviceId}`);
+
+// 创建智能设备
+export const createSmartDevice = (deviceData) => apiClient.post('/smart/devices', deviceData);
+
+// 删除智能设备
+export const deleteSmartDevice = (deviceId) => apiClient.delete(`/smart/devices/${deviceId}`);
+
+// 发送设备命令
+export const sendDeviceCommand = (deviceId, command) => 
+  apiClient.post(`/smart/devices/${deviceId}/command`, command);
+
+// 获取设备状态
+export const getDeviceState = (deviceId) => 
+  apiClient.get(`/smart/devices/${deviceId}/state`);
