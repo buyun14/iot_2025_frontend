@@ -87,18 +87,18 @@ export const deleteMqttTopic = (topicId: string) => apiClient.delete(`/mqtt-topi
 export const getSmartDevices = () => apiClient.get('/smart/devices');
 
 // 获取单个智能设备
-export const getSmartDevice = (deviceId) => apiClient.get(`/smart/devices/${deviceId}`);
+export const getSmartDevice = (deviceId: any) => apiClient.get(`/smart/devices/${deviceId}`);
 
 // 创建智能设备
-export const createSmartDevice = (deviceData) => apiClient.post('/smart/devices', deviceData);
+export const createSmartDevice = (deviceData: any) => apiClient.post('/smart/devices', deviceData);
 
 // 删除智能设备
-export const deleteSmartDevice = (deviceId) => apiClient.delete(`/smart/devices/${deviceId}`);
+export const deleteSmartDevice = (deviceId: any) => apiClient.delete(`/smart/devices/${deviceId}`);
 
 // 发送设备命令
-export const sendDeviceCommand = (deviceId, command) =>
+export const sendDeviceCommand = (deviceId: any, command: any) =>
   apiClient.post(`/smart/devices/${deviceId}/command`, command);
 
 // 获取设备状态
-export const getDeviceState = (deviceId) =>
+export const getDeviceState = (deviceId: any) =>
   apiClient.get(`/smart/devices/${deviceId}/state`);

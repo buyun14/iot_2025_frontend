@@ -24,7 +24,7 @@ const toggleSidebar = () => {
   isSidebarCollapsed.value = !isSidebarCollapsed.value;
 };
 
-const menuItems = [
+const menuItems: Array<{ index: string; icon: string; title: string }> = [
   {
     index: '/',
     icon: 'HomeFilled',
@@ -35,7 +35,6 @@ const menuItems = [
     icon: 'Monitor',
     title: '设备管理'
   },
-  ,
   {
     index: '/mqtt-topics',
     icon: 'Share',
