@@ -53,6 +53,7 @@ declare module 'vue' {
     RouterView: typeof import('vue-router')['RouterView']
     SensorDataModal: typeof import('./src/components/SensorDataModal.vue')['default']
     Sidebar: typeof import('./src/components/Sidebar.vue')['default']
+    TemptureSensor: typeof import('./src/components/sensors/TemptureSensor.vue')['default']
     TheWelcome: typeof import('./src/components/TheWelcome.vue')['default']
     UpdateDeviceModal: typeof import('./src/components/UpdateDeviceModal.vue')['default']
     VideoPlayer: typeof import('./src/components/VideoPlayer.vue')['default']

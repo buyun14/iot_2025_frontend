@@ -32,6 +32,39 @@ const currentRouteName = computed(() => {
 const toggleSidebar = () => {
   isSidebarCollapsed.value = !isSidebarCollapsed.value;
 };
+
+const menuItems: Array<{ index: string; icon: string; title: string }> = [
+  {
+    index: '/',
+    icon: 'HomeFilled',
+    title: '首页'
+  },
+  {
+    index: '/devices',
+    icon: 'Monitor',
+    title: '设备管理'
+  },
+  {
+    index: '/mqtt-topics',
+    icon: 'Share',
+    title: 'MQTT主题管理'
+  },
+  {
+    index: '/smart-devices',
+    icon: 'Share',
+    title: '智能设备管理'
+  },
+  {
+    index: '/video',
+    icon: 'VideoCamera',
+    title: '视频监控'
+  },
+  {
+    index: '/3d-scene',
+    icon: 'View',
+    title: '3D可视化'
+  }
+]
 </script>
 
 <template>
@@ -285,15 +318,15 @@ const toggleSidebar = () => {
   .sidebar {
     width: 64px;
   }
-  
+
   .main-content {
     margin-left: 64px;
   }
-  
+
   .logo-text {
     display: none;
   }
-  
+
   .content {
     padding: 10px;
   }
