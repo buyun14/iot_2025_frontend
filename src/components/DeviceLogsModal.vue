@@ -17,7 +17,7 @@
           重置缩放
         </el-button>
         <el-button @click="exportData">
-          <el-icon><Download /></el-icon>
+          <el-icon><DownloadIcon /></el-icon>
           导出数据
         </el-button>
       </el-button-group>
@@ -59,8 +59,9 @@
 import { ref, onMounted, watch, onBeforeUnmount } from 'vue';
 import Chart from 'chart.js/auto';
 import 'chartjs-adapter-date-fns';
+import zoomPlugin from 'chartjs-plugin-zoom';
 import { getLogs } from '@/services/apiService';
-import { Refresh, Download } from '@element-plus/icons-vue';
+import { Refresh, Download as DownloadIcon } from '@element-plus/icons-vue';
 import { ElMessage } from 'element-plus';
 
 const props = defineProps<{
@@ -75,20 +76,22 @@ const emit = defineEmits<{
 
 const dialogVisible = ref(true);
 const chartCanvas = ref<HTMLCanvasElement | null>(null);
-const chartData = ref<Array<{ timestamp: number; value: number; operation: string; details: string }>>([]);
+const chartData = ref<[number, number][]>([]);
 const tableData = ref<Array<{ timestamp: number; value: number; operation: string; details: string }>>([]);
 let chartInstance: Chart | null = null;
+
+Chart.register(zoomPlugin);
 
 const fetchLogs = async () => {
   try {
     const response = await getLogs(props.device.device_id);
-    const logs = response.data.logs.map(log => ({
+    const logs = response.data.logs.map((log: any) => ({
       timestamp: new Date(log.timestamp).getTime(),
       value: log.details.new_value?.lower || log.details.old_value?.lower || 0,
       operation: log.operation,
       details: JSON.stringify(log.details)
     }));
-    chartData.value = logs;
+    chartData.value = logs.map((log: { timestamp: number; value: number }) => [log.timestamp, log.value]);
     tableData.value = logs;
   } catch (error) {
     console.error('获取设备日志失败', error);
@@ -110,11 +113,7 @@ const renderChart = () => {
           data: chartData.value,
           borderColor: 'rgba(75, 192, 192, 1)',
           backgroundColor: 'rgba(75, 192, 192, 0.2)',
-          fill: true,
-          parsing: {
-            xAxisKey: 'timestamp',
-            yAxisKey: 'value',
-          },
+          fill: true
         }],
       },
       options: {

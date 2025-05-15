@@ -23,9 +23,24 @@
       <el-select v-model="timeRange" class="ml-2" @change="handleTimeRangeChange">
         <el-option label="最近1小时" value="1h" />
         <el-option label="最近6小时" value="6h" />
+        <el-option label="最近12小时" value="12h" />
         <el-option label="最近24小时" value="24h" />
+        <el-option label="最近3天" value="3d" />
         <el-option label="最近7天" value="7d" />
+        <el-option label="最近30天" value="30d" />
+        <el-option label="自定义" value="custom" />
       </el-select>
+      <el-date-picker
+        v-if="timeRange === 'custom'"
+        v-model="customTimeRange"
+        type="datetimerange"
+        range-separator="至"
+        start-placeholder="开始时间"
+        end-placeholder="结束时间"
+        :shortcuts="dateShortcuts"
+        @change="handleCustomTimeRangeChange"
+        class="ml-2"
+      />
     </div>
     <el-table
       v-if="tableData.length > 0"
@@ -60,7 +75,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch, onBeforeUnmount } from 'vue';
+import { ref, onMounted, watch, onBeforeUnmount, computed } from 'vue';
 import Chart from 'chart.js/auto';
 import 'chartjs-adapter-date-fns';
 import { getSensorHistory } from '@/services/apiService';
@@ -73,27 +88,93 @@ interface SensorData {
   status: string;
 }
 
+interface SensorHistoryItem {
+  timestamp: string;
+  value: number;
+  status: string;
+}
+
+interface TimeRangeParams {
+  timeRange?: string;
+  startTime?: string;
+  endTime?: string;
+}
+
 const props = defineProps<{
   device: {
     device_id: string;
   };
+  modelValue: boolean;
 }>();
 
 const emit = defineEmits<{
+  (e: 'update:modelValue', value: boolean): void;
   (e: 'close'): void;
 }>();
 
-const dialogVisible = ref(true);
+const dialogVisible = computed({
+  get: () => props.modelValue,
+  set: (value) => emit('update:modelValue', value)
+});
+
 const chartCanvas = ref<HTMLCanvasElement | null>(null);
 const chartData = ref<SensorData[]>([]);
 const tableData = ref<SensorData[]>([]);
 const timeRange = ref('1h');
+const customTimeRange = ref<[Date, Date] | null>(null);
 let chartInstance: Chart | null = null;
+let timer: ReturnType<typeof setInterval> | null = null;
+
+const dateShortcuts = [
+  {
+    text: '最近1小时',
+    value: () => {
+      const end = new Date();
+      const start = new Date();
+      start.setTime(start.getTime() - 3600 * 1000);
+      return [start, end];
+    },
+  },
+  {
+    text: '最近6小时',
+    value: () => {
+      const end = new Date();
+      const start = new Date();
+      start.setTime(start.getTime() - 3600 * 1000 * 6);
+      return [start, end];
+    },
+  },
+  {
+    text: '最近24小时',
+    value: () => {
+      const end = new Date();
+      const start = new Date();
+      start.setTime(start.getTime() - 3600 * 1000 * 24);
+      return [start, end];
+    },
+  },
+  {
+    text: '最近7天',
+    value: () => {
+      const end = new Date();
+      const start = new Date();
+      start.setTime(start.getTime() - 3600 * 1000 * 24 * 7);
+      return [start, end];
+    },
+  },
+];
 
 const fetchSensorData = async () => {
   try {
-    const response = await getSensorHistory(props.device.device_id, { timeRange: timeRange.value });
-    const data = response.data.map(item => ({
+    let params: TimeRangeParams = { timeRange: timeRange.value };
+    if (timeRange.value === 'custom' && customTimeRange.value) {
+      params = {
+        startTime: customTimeRange.value[0].toISOString(),
+        endTime: customTimeRange.value[1].toISOString()
+      };
+    }
+    const response = await getSensorHistory(props.device.device_id, params);
+    const data = response.data.map((item: SensorHistoryItem) => ({
       timestamp: new Date(item.timestamp).getTime(),
       value: item.value,
       status: item.status
@@ -107,16 +188,31 @@ const fetchSensorData = async () => {
   }
 };
 
+const startTimer = () => {
+  // 清除可能存在的旧定时器
+  if (timer) {
+    clearInterval(timer);
+  }
+  // 设置新的定时器，每秒获取一次数据
+  timer = setInterval(fetchSensorData, 1000);
+};
+
+const stopTimer = () => {
+  if (timer) {
+    clearInterval(timer);
+    timer = null;
+  }
+};
+
 const getStatusType = (status: string) => {
   return status === 'on' ? 'success' : 'danger';
 };
 
 const renderChart = () => {
-  if (chartInstance) {
-    chartInstance.destroy();
-  }
+  if (!chartCanvas.value || chartData.value.length === 0) return;
 
-  if (chartCanvas.value && chartData.value.length > 0) {
+  if (!chartInstance) {
+    // 只在第一次创建图表实例
     chartInstance = new Chart(chartCanvas.value, {
       type: 'line',
       data: {
@@ -170,6 +266,10 @@ const renderChart = () => {
         },
       },
     });
+  } else {
+    // 更新现有图表的数据
+    chartInstance.data.datasets[0].data = chartData.value;
+    chartInstance.update('none'); // 使用 'none' 模式进行静默更新
   }
 };
 
@@ -204,19 +304,30 @@ const handleTimeRangeChange = () => {
   fetchSensorData();
 };
 
+const handleCustomTimeRangeChange = () => {
+  if (customTimeRange.value) {
+    fetchSensorData();
+  }
+};
+
 const close = () => {
+  stopTimer();
+  emit('update:modelValue', false);
   emit('close');
 };
 
 watch(() => props.device, () => {
   fetchSensorData();
+  startTimer();
 });
 
 onMounted(() => {
   fetchSensorData();
+  startTimer();
 });
 
 onBeforeUnmount(() => {
+  stopTimer();
   if (chartInstance) {
     chartInstance.destroy();
   }

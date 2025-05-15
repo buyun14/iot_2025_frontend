@@ -13,9 +13,9 @@
       <div class="filter-toolbar">
         <div class="filter-header">
           <span class="filter-title">筛选条件</span>
-          <el-button 
-            type="text" 
-            :disabled="!hasActiveFilters" 
+          <el-button
+            type="text"
+            :disabled="!hasActiveFilters"
             @click="resetFilters"
           >
             <el-icon><Refresh /></el-icon>
@@ -24,10 +24,10 @@
         </div>
         <el-form :inline="true" :model="filterForm" class="filter-form">
           <el-form-item label="设备状态">
-            <el-select 
-              v-model="filterForm.status" 
-              placeholder="选择状态" 
-              clearable 
+            <el-select
+              v-model="filterForm.status"
+              placeholder="选择状态"
+              clearable
               @change="handleFilterChange"
               :popper-class="'filter-select-dropdown'"
             >
@@ -40,10 +40,10 @@
             </el-select>
           </el-form-item>
           <el-form-item label="设备类型">
-            <el-select 
-              v-model="filterForm.type" 
-              placeholder="选择类型" 
-              clearable 
+            <el-select
+              v-model="filterForm.type"
+              placeholder="选择类型"
+              clearable
               @change="handleFilterChange"
               :popper-class="'filter-select-dropdown'"
             >
@@ -69,25 +69,25 @@
           </el-form-item>
         </el-form>
         <div v-if="hasActiveFilters" class="filter-summary">
-          <el-tag 
-            v-if="filterForm.status" 
-            closable 
+          <el-tag
+            v-if="filterForm.status"
+            closable
             @close="clearFilter('status')"
             class="filter-tag"
           >
             状态: {{ filterForm.status === 'on' ? '在线' : '离线' }}
           </el-tag>
-          <el-tag 
-            v-if="filterForm.type" 
-            closable 
+          <el-tag
+            v-if="filterForm.type"
+            closable
             @close="clearFilter('type')"
             class="filter-tag"
           >
             类型: {{ getTypeLabel(filterForm.type) }}
           </el-tag>
-          <el-tag 
-            v-if="filterForm.customType" 
-            closable 
+          <el-tag
+            v-if="filterForm.customType"
+            closable
             @close="clearFilter('customType')"
             class="filter-tag"
           >
@@ -170,16 +170,7 @@ import DeviceLogsModal from '@/components/DeviceLogsModal.vue';
 import SensorDataModal from '@/components/SensorDataModal.vue';
 import { Monitor, Edit, Delete, Document, DataLine, Refresh } from '@element-plus/icons-vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
-
-interface Device {
-  _id: string;
-  device_id: string;
-  status: string;
-  thresholds?: {
-    lower?: number;
-    upper?: number;
-  };
-}
+import { Device } from '@/utils/Model';
 
 const devices = ref<Device[]>([]);
 const selectedDevice = ref<Device | null>(null);
@@ -219,25 +210,19 @@ const resetFilters = () => {
   handleFilterChange();
 };
 
-const getDeviceType = (deviceId: string) => {
-  if (deviceId.includes('humidity')) return '湿度传感器';
-  if (deviceId.includes('temperature')) return '温度传感器';
-  return filterForm.value.customType || '其他传感器';
-};
-
 const filteredDevices = computed(() => {
   return devices.value.filter(device => {
     // 状态筛选
     const matchesStatus = !filterForm.value.status || device.status === filterForm.value.status;
-    
+
     // 类型筛选
-    const matchesType = !filterForm.value.type || 
-      (filterForm.value.type === 'humidity' && device.device_id.includes('humidity')) ||
-      (filterForm.value.type === 'temperature' && device.device_id.includes('temperature')) ||
-      (filterForm.value.type === 'other' && 
-        (!device.device_id.includes('humidity') && !device.device_id.includes('temperature')) &&
-        (!filterForm.value.customType || device.device_id.includes(filterForm.value.customType)));
-    
+    const matchesType = !filterForm.value.type ||
+      (filterForm.value.type === 'humidity' && device.type === 'humidity') ||
+      (filterForm.value.type === 'temperature' && device.type === 'temperature') ||
+      (filterForm.value.type === 'other' &&
+        (!device.type.includes('humidity') && !device.type.includes('temperature')) &&
+        (!filterForm.value.customType || device.type.includes(filterForm.value.customType)));
+
     return matchesStatus && matchesType;
   });
 });
@@ -258,6 +243,7 @@ const fetchDevices = async () => {
   try {
     const response = await getDevices();
     devices.value = response.data;
+    console.log(devices.value);
   } catch (error) {
     console.error('获取设备列表失败', error);
     ElMessage.error('获取设备列表失败');
