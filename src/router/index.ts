@@ -2,7 +2,6 @@ import { createRouter, createWebHistory } from 'vue-router';
 import HomeView from '../views/HomeView.vue';
 import DeviceList from '../views/DeviceList.vue';
 import Scene3DView from '../views/Scene3DView.vue';
-import VideoManagement from '../views/VideoManagement.vue';
 import MqttTopicList from '@/views/MqttTopicList.vue';
 import SmartDevices from '@/views/SmartDevices.vue';
 
@@ -24,15 +23,6 @@ const router = createRouter({
       component: DeviceList,
       meta: {
         title: '设备管理',
-        requiresAuth: true
-      }
-    },
-    {
-      path: '/video',
-      name: 'video',
-      component: VideoManagement,
-      meta: {
-        title: '视频监控',
         requiresAuth: true
       }
     },
@@ -73,7 +63,7 @@ const router = createRouter({
 router.beforeEach((to, from, next) => {
   // 设置页面标题
   document.title = `${to.meta.title} - IoT Platform`;
-  
+
   // 检查是否需要认证
   if (to.matched.some(record => record.meta.requiresAuth)) {
     // 这里可以添加认证逻辑

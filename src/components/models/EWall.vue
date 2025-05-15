@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { Wall_t } from '@/utils/Model'
-import { computed, PropType } from 'vue'
+import { computed, PropType, ref, onMounted } from 'vue'
+import { useTexture } from '@tresjs/core'
+import type { Texture } from 'three'
 
 /**
  * Props
@@ -32,6 +34,33 @@ const props = defineProps({
     }
 })
 
+const isLoaded = ref(false)
+const wallTexture = ref({ map: null as Texture | null })
+
+onMounted(async () => {
+    try {
+        wallTexture.value = await useTexture({
+            map: '/textures/wall/wall_texture.jpg'
+        })
+
+        // 设置纹理重复
+        if (wallTexture.value.map) {
+            wallTexture.value.map.wrapS = wallTexture.value.map.wrapT = 1000
+            wallTexture.value.map.repeat.set(2, 2)
+            // 启用纹理边缘平滑
+            wallTexture.value.map.minFilter = 1006
+            wallTexture.value.map.magFilter = 1006
+            // 设置纹理边缘处理
+            wallTexture.value.map.generateMipmaps = true
+        }
+
+        console.log('墙壁纹理加载状态:', wallTexture.value)
+        isLoaded.value = true
+    } catch (error) {
+        console.error('墙壁纹理加载失败:', error)
+    }
+})
+
 // 计算墙的长度（起点到终点的距离）
 const length = computed(() => {
     const dx = props.wall.endPoint.x - props.wall.startPoint.x
@@ -57,22 +86,22 @@ const rotation = computed<[number, number, number]>(() => {
 </script>
 
 <template>
-    <TresMesh
-        cast-shadow
-        receive-shadow
-        :position="position"
-        :rotation="rotation"
-        :side="2"
-    >
-        <TresBoxGeometry :args="[length, height, depth]" />
-        <TresMeshPhysicalMaterial
-            :color="color" 
-            :metalness="0.5"
-            :roughness="0.5"
-            :clearcoat="0.1"
-            :clearcoat-roughness="1"
-        />
-    </TresMesh>
+    <TresGroup v-if="isLoaded">
+        <TresMesh
+            cast-shadow
+            receive-shadow
+            :position="position"
+            :rotation="rotation"
+        >
+            <TresBoxGeometry :args="[length, height, depth]" />
+            <TresMeshPhysicalMaterial
+                :color="color"
+                :side="2"
+                :metalness="0.5"
+                :roughness="0.5"
+                :map="wallTexture?.map" />
+        </TresMesh>
+    </TresGroup>
 </template>
 
 <style scoped>

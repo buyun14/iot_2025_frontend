@@ -46,11 +46,6 @@ const menuItems: Array<{ index: string; icon: string; title: string }> = [
     title: '智能设备管理'
   },
   {
-    index: '/video',
-    icon: 'VideoCamera',
-    title: '视频监控'
-  },
-  {
     index: '/3d-scene',
     icon: 'View',
     title: '3D可视化'

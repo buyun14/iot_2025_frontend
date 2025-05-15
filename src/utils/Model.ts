@@ -36,26 +36,22 @@ class Home_t {
     ) {}
 }
 
-//TODO: 更多传感器类型
-type SensorType = 'Temperature' | 'Humidity' | 'Light' | 'Sound'
-
-// 传感器数据类型映射
-interface SensorDataMap {
-    Temperature: number;
-    Humidity: number;
-    Light: number;
-    Sound: number;
-}
-
-class Sensor_t {
+class Device {
     constructor(
-        public id: string,
-        public parentId: string,
-        public name: string,
-        public position: number[],
-        public type: SensorType,
-        public data: SensorDataMap[SensorType]
+        public _id: string,
+        public device_id: string,
+        public status: string,
+        public type: string,
+        public location: {
+            floor: string;
+            room: string;
+            coordinates: [number, number, number];
+        },
+        public thresholds?: {
+            lower?: number;
+            upper?: number;
+        }
     ) {}
 }
 
-export { Wall_t, Room_t, Floor_t, Home_t, Sensor_t }
+export { Wall_t, Room_t, Floor_t, Home_t, Device }
