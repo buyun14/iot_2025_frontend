@@ -73,7 +73,7 @@ const router = createRouter({
 router.beforeEach((to, from, next) => {
   // 设置页面标题
   document.title = `${to.meta.title} - IoT Platform`;
-  
+
   // 检查是否需要认证
   if (to.matched.some(record => record.meta.requiresAuth)) {
     // 这里可以添加认证逻辑

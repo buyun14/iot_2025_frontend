@@ -48,7 +48,7 @@
 import { ref, watch } from 'vue';
 import { updateDeviceConfig } from '@/services/apiService';
 import { ElMessage } from 'element-plus';
-import type { FormInstance } from 'element-plus';
+import type { FormInstance } from 'element-plus/es/components/form';
 
 const props = defineProps<{
   device: {
